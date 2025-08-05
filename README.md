@@ -39,6 +39,13 @@ agentic-ai/
 └── requirements.txt # Dependencies
 ```
 
+## Development Requirements
+
+- Python 3.8 or higher
+- pip (Python package installer)
+- Virtual environment (recommended)
+- API keys for the LLM providers you plan to use
+
 ## Setup
 
 1. Clone the repository:
@@ -58,13 +65,35 @@ agentic-ai/
    pip install -r requirements.txt
    ```
 
+   Key dependencies used in this project:
+   ```
+   langchain            # Core LangChain framework
+   langchain-core       # LangChain core utilities
+   langchain-community  # Community tools and integrations
+   python-dotenv       # Environment variable management
+   
+   # LLM Providers (install based on your needs)
+   langchain-google-genai  # For Google Gemini
+   langchain-openai       # For OpenAI GPT
+   langchain-anthropic    # For Anthropic Claude
+   
+   # Additional dependencies
+   pydantic            # Data validation
+   typing-extensions   # Type hints
+   ```
+
 4. Create a `.env` file in the root directory with your API keys:
    ```env
    GOOGLE_API_KEY=your_google_api_key
    OPENAI_API_KEY=your_openai_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
+   # Provider selection
    LLM_PROVIDER=google  # or 'openai' or 'anthropic'
-   LLM_MODEL=gemini-2.5-flash  # or other model names
+   
+   # Model selection (examples for each provider)
+   LLM_MODEL=gemini-2.5-flash      # For Google
+   # LLM_MODEL=gpt-3.5-turbo      # For OpenAI
+   # LLM_MODEL=claude-3-opus-20240229  # For Anthropic
    ```
 
 ## Usage
