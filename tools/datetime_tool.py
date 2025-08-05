@@ -1,17 +1,15 @@
-"""Tool for providing current date and time information, using LangChain's built-in tool if available."""
-try:
-    # Try to import the standard LangChain DateTime tool
-    from langchain_community.tools import DateTimeTool
-    datetime_tool = DateTimeTool()
-    # Usage: datetime_tool.run() returns the current date and time as a string
-except ImportError:
-    # Fallback to custom implementation
-    from datetime import datetime
+"""Tool for providing current date and time information."""
+from datetime import datetime
+from langchain.tools import BaseTool
 
-    def get_current_datetime() -> str:
+class DateTimeTool(BaseTool):
+    name: str = "datetime_tool"
+    description: str = "Use this tool to get the current date and time. Useful for answering questions about current time, date, day of the week, etc."
+
+    def _run(self, query: str = "") -> str:
+        """Get the current date and time."""
         now = datetime.now()
         return now.strftime("%A, %d %B %Y, %H:%M:%S")
 
-    def datetime_tool(query: str = None) -> str:
-        """Answer queries about the current date and time."""
-        return f"Current date and time: {get_current_datetime()}"
+# Create an instance of the tool
+datetime_tool = DateTimeTool()

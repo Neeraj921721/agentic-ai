@@ -1,5 +1,9 @@
 import os
+from typing import List
 
+from langchain.agents import initialize_agent, AgentType
+from langchain.memory import ConversationBufferMemory
+from langchain.tools.base import BaseTool
 from .base_agent import BaseAgent
 from dotenv import load_dotenv
 from config import CONFIG
@@ -7,15 +11,36 @@ from tools.datetime_tool import datetime_tool
 
 
 class AgenticModel(BaseAgent):
-    """AgenticModel dynamically loads and manages the selected LLM provider and model."""
+    """AgenticModel dynamically loads and manages the selected LLM provider and model with tool support."""
     def __init__(self, name: str = "AgenticModel"):
         super().__init__(name)
         load_dotenv()
         provider = CONFIG.get('provider', 'google').lower()
         model = CONFIG.get('model')
+        
+        # Initialize LLM
         self.llm = self._load_llm(provider, model)
         self.provider = provider
         self.model = model
+        
+        # Initialize tools
+        self.tools = self._initialize_tools()
+        
+        # Initialize conversation memory
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
+        )
+        
+        # Initialize the agent
+        self.agent = initialize_agent(
+            tools=self.tools,
+            llm=self.llm,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            verbose=True,
+            memory=self.memory,
+            handle_parsing_errors=True
+        )
 
     def _load_llm(self, provider, model):
         if provider == 'google':
@@ -51,55 +76,21 @@ class AgenticModel(BaseAgent):
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
+    def _initialize_tools(self) -> List[BaseTool]:
+        """Initialize and return list of available tools."""
+        return [datetime_tool]
+
     def run(self, input_text: str) -> str:
         """
-        1. Let LLM try to answer first.
-        2. If LLM can't answer (detected by broad fallback patterns), or if the query matches a tool's domain, use the tool.
-        3. Return a user-friendly answer.
+        Run the agent with the given input.
+        The agent will automatically:
+        1. Understand the user's request
+        2. Decide if and which tools to use
+        3. Use tools if needed
+        4. Formulate a natural response
         """
-        # Step 1: LLM tries to answer
-        result = self.llm.invoke(input_text)
-        llm_response = result.content if hasattr(result, 'content') else str(result)
-
-        # Step 2: Check if the query matches a tool's domain (date/time)
-        date_keywords = ["date", "time", "day", "today", "current time", "what day", "clock", "month", "year"]
-        query_is_datetime = any(kw in input_text.lower() for kw in date_keywords)
-
-        # Step 3: Check for broad fallback patterns in LLM response
-        fallback_patterns = [
-            "i don't have access to real-time information",
-            "i'm unable to provide that information",
-            "i don't know",
-            "i'm not sure",
-            "as an ai language model",
-            "i cannot tell you the exact time",
-            "i don't have access to current time",
-            "i don't have access to current date",
-            "i don't have access to a clock",
-            "please check the clock",
-            "please check your device",
-            "i can't access real-time",
-            "i can't access the current time",
-            "i can't access the current date",
-        ]
-        llm_response_lower = llm_response.lower()
-        fallback_triggered = any(pat in llm_response_lower for pat in fallback_patterns)
-
-        # If the query is about date/time, always use the tool for accuracy
-        if query_is_datetime:
-            if hasattr(datetime_tool, 'run'):
-                tool_result = datetime_tool.run()
-            else:
-                tool_result = datetime_tool(input_text)
-            return f"{tool_result}"
-
-        # If LLM fallback is triggered, try tool as a backup (for future extensibility)
-        if fallback_triggered:
-            if hasattr(datetime_tool, 'run'):
-                tool_result = datetime_tool.run()
-            else:
-                tool_result = datetime_tool(input_text)
-            return f"{tool_result}"
-
-        # Otherwise, return LLM's answer
-        return llm_response
+        try:
+            response = self.agent.run(input=input_text)
+            return response
+        except Exception as e:
+            return f"I encountered an error: {str(e)}"
