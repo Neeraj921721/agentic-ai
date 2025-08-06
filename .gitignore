@@ -1,67 +1,19 @@
+# IDE specific files
+.idea/
+.idea/*
+.vscode/
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-*.egg-info/
-*.egg
 
-# Virtual Environment
+# Environment files
 .env
-.venv
+.venv/
 env/
 venv/
-ENV/
 
-# IDE - PyCharm, VSCode, etc
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-
-# Distribution / packaging
-build/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Local development
-*.log
-logs/
-tmp/
-temp/
-
-# Environment variables and secrets
-.env*
-.env.local
-.env.*.local
-
-# Operating System
+# OS specific
 .DS_Store
 Thumbs.db
